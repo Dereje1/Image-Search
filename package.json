@@ -2,22 +2,22 @@
   "//1": "describes your app and its dependencies",
   "//2": "https://docs.npmjs.com/files/package.json",
   "//3": "updating this file will download and update your packages",
-
-  "name": "my-glitch-template",
+  "name": "Image-Search",
   "version": "0.0.1",
-  "description": "Template",
+  "description": "FCC-Backend-4",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.15.4"
+    "express": "^4.15.4",
+    "mongodb": "^2.2.31"
   },
   "engines": {
     "node": "8.x"
   },
   "repository": {
-    "url": "https://github.com/Dereje1/glitchtemplate"
+    "url": "https://github.com/Dereje1/Image-Search"
   },
   "license": "MIT",
   "keywords": [
