@@ -1,19 +1,53 @@
-// server.js
-// where your node app starts
 
-// init project
-var express = require('express');
-var app = express();
+let express = require('express')
+let mongo = require('mongodb').MongoClient
+let apiGetter = require("./getHTTPS")
 
-// we've started you off with Express,
-// but feel free to use whatever libs or frameworks you'd like through `package.json`.
+let app = express();
+let dbLink =process.env.MONGOLAB_URI;
+let googleAPIConnect = "https://www.googleapis.com/customsearch/v1?key="+process.env.GOOGLE_API_KEY+"&cx=" +process.env.GOOGLE_ENGINE_CX + "&searchType=image"
 
-// http://expressjs.com/en/starter/static-files.html
 app.use(express.static('public'));
 
-// http://expressjs.com/en/starter/basic-routing.html
-app.get("/", function (req, res) {
+app.get("/", function (req, res) {//default page
   res.sendFile(__dirname + '/views/index.html');
+});
+
+app.get("/images/:imageSearch", function (req, res) {
+  let imageQuery = req.params.imageSearch
+  let offsetQuery = req.query.offset ? req.query.offset : 1
+
+  let APIlink =googleAPIConnect +"&start=" + offsetQuery + "&q="+ imageQuery
+  let recentqueries;
+  apiGetter(APIlink)
+    .then(function(result){
+      let fullJSONresult = JSON.parse(result)
+      let extraction = JSON.parse(result).items.map(function(r){
+        let report ={}
+        report.url = r.link
+        report.snippet = r.snippet
+        report.thumbnail = r.image.thumbnailLink
+        report.context = r.image.contextLink
+        return report
+      })
+
+      findRecentQuery().then(function(q){
+          recentqueries = q
+          recentqueries.unshift(imageQuery)
+      }).then(function(){
+            insertQuery(imageQuery)
+              .then(function(){//insert query in database
+                  res.end(JSON.stringify({extraction,recentqueries})); //once insertion is done then print report
+              })
+              .catch(function(err){
+                res.end(err)
+              })
+      })
+    })
+    .catch(function(err){
+      res.end(err)
+    })
+
 });
 
 
@@ -21,3 +55,41 @@ app.get("/", function (req, res) {
 var listener = app.listen(process.env.PORT || 3000, function () {
   console.log('Your app is listening on port ' + listener.address().port);
 });
+
+//database functions below
+
+function findRecentQuery(){// finds last 10 queries
+  //by link, otherwise will search by urlid
+  let query = {}
+  return mongo.connect(dbLink)//returns promise after finding
+    .then(function(db){
+      let collection = db.collection('Imgsearch')//specify collection
+      return collection.find().sort({timeStamp:-1}).toArray()//look for all documents sorted with the time stamp descending
+    })
+    .then(function(items) {//the whole function will return this
+      let allQueris = items.map((u)=>{
+        return u.imageQuery
+      })
+      return allQueris.slice(0,9)
+    })
+    .catch(function(err) {
+        throw err;
+    });
+}
+function insertQuery(imgQuery){//inserts imgQuery into database
+  return mongo.connect(dbLink)//returns promise after inserting
+    .then(function(db){
+      let collection = db.collection('Imgsearch')//specify collection
+      let insertedObject = {
+        imageQuery: imgQuery,
+        timeStamp: Date.now()
+      }
+      return collection.insert(insertedObject)
+    })
+    .then(function(newInsertion){//insert then log(for debugginh)
+      console.log(imgQuery + " succesfully entered into DB")
+    })
+    .catch(function(err) {
+        throw err;
+    });
+}

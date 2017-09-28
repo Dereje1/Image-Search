@@ -1,17 +1,9 @@
-<!-- This is a static file -->
-<!-- served from your routes in server.js -->
-
-<!-- You might want to try something fancier: -->
-<!-- html/nunjucks docs: https://mozilla.github.io/nunjucks/ -->
-<!-- pug: https://pugjs.org/ -->
-<!-- haml: http://haml.info/ -->
-<!-- hbs(handlebars): http://handlebarsjs.com/ -->
 
 <!DOCTYPE html>
 <html>
   <head>
-    <title>My Template</title>
-    <meta name="description" content="A Template for my Back-End Projects">
+    <title>Image Search Abstraction Layer</title>
+    <meta name="description" content="A google API Image Searcher">
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -20,8 +12,41 @@
     <link rel="stylesheet" href="/style.css">
   </head>
   <body>
-    <div class ="container-fluid">
-        <div id="application"></div>
+      <div class ="container-fluid">
+        <div class="row">
+          <div class="col-md-6 col-md-offset-3 text-center" id="instructions">
+            <h1>Image Search Abstraction Layer</h1>
+            <h3>User Stories</h3>
+            <ol class="list-group">
+                <li class="list-group-item">I can get the image URLs, alt text and page urls for a set of images relating to a given search string.</li>
+                <li class="list-group-item"> I can paginate through the responses by adding a ?offset=2 parameter to the URL.</li>
+                <li class="list-group-item">I can get a list of the most recently submitted search strings.</li>
+            </ol>
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <h3 class="panel-title"><strong>Example Input</strong></h3>
+                </div>
+                <div class="panel-body">
+                  <h5><strong>Enter query to search Google's API below, If you would like to apply an offset then add an optional [,&ltoffset&gt] to query.</strong></h5>
+                  <form class="form-inline" id="urlSubmitForm">
+                        <input type="text" class="form-control" id="usr" placeholder="lions,10">
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                  </form>
+                  <BR>
+                  <h5><strong>OR paste query directly into browser in the format below:</strong></h5>
+                  <p class="usage"><strong>https://search-images.glitch.me/images/lions?offset=10</strong></p>
+                </div>
+              </div>
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <h3 class="panel-title"><strong>Example Output</strong></h3>
+                </div>
+                <div class="panel-body">
+                  <p class="usage"><strong>{extraction: [{url,snippet,thumbnail,context},.....],recentqueries:["lions","bears","lizards",...]}</strong></p>
+                </div>
+                </div>
+              </div>
+          </div>
         <div class="row">
           <div class="col-md-12 text-center" id="info">
             Coded by <a href="https://www.freecodecamp.com/dereje1" target="_blank">DGetahun</a>
