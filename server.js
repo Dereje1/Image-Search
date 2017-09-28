@@ -20,8 +20,12 @@ app.get("/images/:imageSearch", function (req, res) {
   let APIlink =googleAPIConnect +"&start=" + offsetQuery + "&q="+ imageQuery
   let recentqueries;
   apiGetter(APIlink) // calls api with promise
-    .then(function(err,result){
-      if(err){res.end(err)}//log error from google api maximum 100 calls / day allowed
+    .then(function(result){
+      //google api allows only 100 hits / day, so must handle this exception here as the message does not really comback as an error
+      if(Object.keys(result)[0]==="error"){//daily limit exceeded send error message
+        res.end(result)
+        return
+      }
       let fullJSONresult = JSON.parse(result)
       let extraction = JSON.parse(result).items.map(function(r){//extract and modify output
         let report ={}
@@ -38,7 +42,7 @@ app.get("/images/:imageSearch", function (req, res) {
       }).then(function(){//insert current query into db
             insertQuery(imageQuery)
               .then(function(){
-                  res.end(JSON.stringify({extraction,recentqueries})); //once insertion is done then print report
+                  res.end(JSON.stringify({extraction,recentqueries,offsetQuery})); //once insertion is done then print report
               })
               .catch(function(err){
                 res.end(err)
