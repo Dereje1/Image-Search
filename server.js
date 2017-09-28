@@ -15,15 +15,15 @@ app.get("/", function (req, res) {//default page
 
 app.get("/images/:imageSearch", function (req, res) {
   let imageQuery = req.params.imageSearch
-  let offsetQuery = req.query.offset ? req.query.offset : 1
-
+  let offsetQuery = req.query.offset ? req.query.offset : 1 //default offset of 1
+  //concatenate api search link by using both params & query (if available)
   let APIlink =googleAPIConnect +"&start=" + offsetQuery + "&q="+ imageQuery
   let recentqueries;
-  apiGetter(APIlink)
+  apiGetter(APIlink) // calls api with promise
     .then(function(err,result){
-      if(err){res.end(err)}
+      if(err){res.end(err)}//log error from google api maximum 100 calls / day allowed
       let fullJSONresult = JSON.parse(result)
-      let extraction = JSON.parse(result).items.map(function(r){
+      let extraction = JSON.parse(result).items.map(function(r){//extract and modify output
         let report ={}
         report.url = r.link
         report.snippet = r.snippet
@@ -32,12 +32,12 @@ app.get("/images/:imageSearch", function (req, res) {
         return report
       })
 
-      findRecentQuery().then(function(q){
+      findRecentQuery().then(function(q){//find recent searches
           recentqueries = q
           recentqueries.unshift(imageQuery)
-      }).then(function(){
+      }).then(function(){//insert current query into db
             insertQuery(imageQuery)
-              .then(function(){//insert query in database
+              .then(function(){
                   res.end(JSON.stringify({extraction,recentqueries})); //once insertion is done then print report
               })
               .catch(function(err){
@@ -62,18 +62,16 @@ var listener = app.listen(process.env.PORT || 3000, function () {
 //database functions below
 
 function findRecentQuery(){// finds last 10 queries
-  //by link, otherwise will search by urlid
-  let query = {}
   return mongo.connect(dbLink)//returns promise after finding
     .then(function(db){
       let collection = db.collection('Imgsearch')//specify collection
       return collection.find().sort({timeStamp:-1}).toArray()//look for all documents sorted with the time stamp descending
     })
-    .then(function(items) {//the whole function will return this
-      let allQueris = items.map((u)=>{
+    .then(function(items) {
+      let allQueris = items.map((u)=>{//transpose object just to recent query array
         return u.imageQuery
       })
-      return allQueris.slice(0,9)
+      return allQueris.slice(0,9)//only return last 10
     })
     .catch(function(err) {
         throw err;
