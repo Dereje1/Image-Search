@@ -20,7 +20,8 @@ app.get("/images/:imageSearch", function (req, res) {
   let APIlink =googleAPIConnect +"&start=" + offsetQuery + "&q="+ imageQuery
   let recentqueries;
   apiGetter(APIlink)
-    .then(function(result){
+    .then(function(err,result){
+      if(err){res.end(err)}
       let fullJSONresult = JSON.parse(result)
       let extraction = JSON.parse(result).items.map(function(r){
         let report ={}
@@ -42,6 +43,8 @@ app.get("/images/:imageSearch", function (req, res) {
               .catch(function(err){
                 res.end(err)
               })
+      }).catch(function(err){
+        res.end(err)
       })
     })
     .catch(function(err){
